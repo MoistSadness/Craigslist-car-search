@@ -1,0 +1,15 @@
+[
+    {
+        "Model": "Sequoia 4x4",
+        "Year": "2000 - 2020",
+        "Mileage": 160000,
+        "Price": 12000
+    },
+
+    {
+        "Model": "Suburban 4x4",
+        "Year": "2000 - 2007",
+        "Mileage": 160000,
+        "Price": 12000
+    }
+]
