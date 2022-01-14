@@ -47,10 +47,6 @@ def Search_For_Car(model, mileage, price):
             #print(result, end="\n*2")
             
 
-
-
-
-
 '''
 Imports data from JSON file and uses it to run the desired searches
 '''
