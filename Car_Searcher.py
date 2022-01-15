@@ -26,7 +26,7 @@ def Search_For_Car(model, mileage, price):
     # getting a list of keys from the urls
     keyListLocations = getList(URL)
 
-    # Make the vehicle search in every location in the list of locations 
+    # Make the vehicle search in every location in the list of URLs 
     for location in range(len(keyListLocations)):
         # Get the webpage 
         page = requests.get(URL[keyListLocations[location]])
@@ -39,13 +39,25 @@ def Search_For_Car(model, mileage, price):
 
         # Use Beautiful Soup to find all search results             
         search_results = soup.find(id="search-results")
-        print(search_results.prettify())
+        #print(search_results.prettify())
+
+        vehicle_link_list = []
 
         # Use beautiful soup to find all elements by class
-        search_results_class = search_results.find_all("div", class_="result-row")
+        search_results_class = search_results.find_all("li", class_="result-row")
+
+        # Extract vehicle URLs from each class
         for result in search_results_class:
-            #print(result, end="\n*2")
-            
+            #print(result.find_all('a', href=True), end="\n*2")
+            poop = result.find('a', href=True)
+            vehicle_link_list.append(poop['href'])      # Adding extracted link in list
+
+        # Visiting each link and getting desired data
+        for vehicle in vehicle_link_list:
+            print(vehicle)
+
+
+
 
 '''
 Imports data from JSON file and uses it to run the desired searches
