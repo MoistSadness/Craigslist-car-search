@@ -1,3 +1,5 @@
+The code is a nightmare to read. This is what happens when I dont design the script beforehand lol.
+
 Application searches craigslist for used cars and scrapes the returned html file to search for all the related searches that fit the desired search criteria
 
 Create a bash script that runs the application? Is this even needed?
