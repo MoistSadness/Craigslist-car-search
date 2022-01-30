@@ -1,12 +1,102 @@
 '''
 Search_For_Car() function takes the user input to search craigslist for the desired car 
 and parse the retrieved HTML file for a matching search result
+
+A huge help: https://realpython.com/python-send-email/
+
+Apparently gmail's smtp server does not work most of the time 
+https://zetcode.com/python/smtplib/
 '''
 
+from email import message
 import json
-from lib2to3.pgen2 import driver
+import re
 import requests
 from bs4 import BeautifulSoup 
+
+import smtplib
+import ssl
+from email.mime.text import MIMEText
+
+'''
+Object that stores craigslist listings that match the search criteria
+Contains the following:
+    title 
+    url
+    price 
+    drive 
+    odometer 
+'''
+class VEHICLE:
+    def __init__(self):
+        self.title = "none"
+        self.url = "none"
+        self.price = "none"
+        self.drive = "none"
+        self.odometer = "none"
+
+    def setTitle(self, title):
+        self.title = str(title)
+
+    def setURL(self, url):
+        self.url = str(url)
+
+    def setPrice(self, price):
+        self.price = int(re.sub("[^0-9]", "", price))
+
+    def setDrive(self, drive):
+        self.drive = str(drive)
+
+    def setOdometer(self, odometer):
+        self.odometer = int(odometer)
+    
+    def getTitle(self):
+        return self.title
+    def getUrl(self):
+        return self.url
+    def getPrice(self):
+        return self.price
+    def getDrive(self):
+        return self.drive
+    def getOdometer(self):
+        return self.odometer
+    
+    def printObj(self):
+        print("Title:\t\t", self.title)
+        print("URL:\t\t", self.url)
+        print("Price:\t\t", self.price)
+        print("Drive:\t\t", self.drive)
+        print("Odometer:\t", self.odometer)
+    
+    '''
+    Returns a string containing all the data
+    '''
+    def returnString(self):
+        textStr = ""
+
+        textStr += "Title:      "
+        textStr += self.title
+        textStr += "\n"
+
+        textStr += "URL:        "
+        textStr += self.url
+        textStr += "\n"
+
+        textStr += "Price:      "
+        textStr += str(self.price)
+        textStr += "\n"
+
+        textStr += "Drive:      "
+        textStr += self.drive
+        textStr += "\n"
+
+        textStr += "Odometer:   "
+        textStr += str(self.odometer)
+        textStr += "\n"
+
+
+        return textStr
+
 
 '''
 Function takes a dictionary as input and returns a list of keys
@@ -119,7 +209,7 @@ def Search_For_Car(model, mileage, price):
 
             # ACQUIRING THE TITLE HERE 
             VEHICLE_OBJ.setTitle(vehicleSoup.find(id="titletextonly").get_text())
-            print(VEHICLE_OBJ.getTitle())         # Printing title so user has visual aid to see the script progress
+            #print(VEHICLE_OBJ.getTitle())         # Printing title so user has visual aid to see the script progress
             
             # ACQUIRING THE PRICE HERE
             try:
@@ -142,64 +232,61 @@ def Search_For_Car(model, mileage, price):
             VEHICLE_OBJ.setOdometer(Scrape_Mileage(idk))     # Acquire the odometer reading
             VEHICLE_OBJ.setDrive(Scrape_Drive(idk))                  # Acquire the vehicle's drive
 
+            # Check if the VEHICLE object matches the criteria
+            # If match, add to list, otherwise ignore
+            try:
+                if int(VEHICLE_OBJ.getOdometer()) < int(mileage) and int(VEHICLE_OBJ.getPrice()) < int(price):
+                    VEHICLE_OBJ_LIST.append(VEHICLE_OBJ)
+                    print("Found Match:\t", VEHICLE_OBJ.getTitle())         # Printing title so user has visual aid to see the script progress
+                else: 
+                    print("Not a Match")
+            except ValueError:
+                print("No Valid price found!")
+
+            '''
             # Add the VEHICLE object to the list of matching objects
             VEHICLE_OBJ_LIST.append(VEHICLE_OBJ)
-            
-            break       # to only work on one link
+            '''
+            #break       # to only work on one link
 
-
-        # Now that the list of objects has been generated, we will email the results to my email address
-        for vehicle in VEHICLE_OBJ_LIST:
-            vehicle.printObj()
-            print()
+        return VEHICLE_OBJ_LIST
 
 '''
-Object that stores craigslist listings that match the search criteria
-Contains the following:
-    title 
-    url
-    price 
-    drive 
-    odometer 
+Function takes a list of VEHICLE objects
+Sends email containing the contents of the list to my email address
 '''
-class VEHICLE:
-    def __init__(self):
-        self.title = "none"
-        self.url = "none"
-        self.price = "none"
-        self.drive = "none"
-        self.odometer = "none"
+def SendEmail(VEHICLE_LIST):
+    # Now that the list of objects has been generated,
+    # We will email the results to my email address
 
-    def setTitle(self, title):
-        self.title = title
-    def setURL(self, url):
-        self.url = url
-    def setPrice(self, price):
-        self.price = price
-    def setDrive(self, drive):
-        self.drive = drive
-    def setOdometer(self, odometer):
-        self.odometer = odometer
-    
-    def getTitle(self):
-        return self.title
-    def getUrl(self):
-        return self.url
-    def getPrice(self):
-        return self.price
-    def getDrive(self):
-        return self.drive
-    def getOdometer(self):
-        return self.odometer
-    
-    def printObj(self):
-        print("Title:\t\t", self.title)
-        print("URL:\t\t", self.url)
-        print("Price:\t\t", self.price)
-        print("Drive:\t\t", self.drive)
-        print("Odometer:\t", self.odometer)
+    port = 1025
 
+    sender = 'moistsadness@gmail.com'
+    reciever = 'moistsadness666@gmail.com'
 
+    # Creating a string with the message
+    messageStr = ''
+    for vehicle in VEHICLE_LIST:
+        messageStr += vehicle.returnString()
+        messageStr += "\n"
+
+    # print(messageStr)
+
+    # Creating MIMEText object
+    msg = MIMEText(messageStr)
+    msg['Subject'] = 'Test Email'
+    msg['From']  = sender
+    msg['To'] = reciever
+
+    # Creating local mail server
+    # Make sure to run: python -m smtpd -n -c DebuggingServer lhost:1025
+    # To create a local mail server
+    with smtplib.SMTP('localhost', port) as server:
+        # server.login('username', 'password')      # Do not need to log into local server
+        server.sendmail(sender, reciever, msg.as_string())
+        print("\n**********************")
+        print('*    sending mail    *')
+        print("\**********************")
 
 
 '''
@@ -207,20 +294,26 @@ Imports data from JSON file and uses it to run the desired searches
 '''
 def main():
     # Open the text file containing car data
+
+    VEHICLE_LIST = []
+
     with open("cars.json", "r") as carJSON:
         carList = json.loads(carJSON.read())
         # print(cars.read())
-
-        print("\t\tModel\tMileage\tMax. Price")
-        print("\t\t--------------------------------------")
+        
         # Iterate through the list of cars and run the search for each one
         for car in range(len(carList)):
-            #print(carList[car])
-            print("Searching for:\t", carList[car]["Model"], "\t", carList[car]["Mileage"], "\t",  carList[car]["Price"], "\n")
-            Search_For_Car(carList[car]["Model"], carList[car]["Mileage"], carList[car]["Price"])
+            print("********************************************")
+            print("Searching for:\t", carList[car]["Model"], "\t", carList[car]["Mileage"], "\t",  carList[car]["Price"])
+            print("********************************************")
 
-            print("\n\n--------\--------\--------\--------\--------\n\n")
+            Matched_Vehicles = Search_For_Car(carList[car]["Model"], carList[car]["Mileage"], carList[car]["Price"])
 
+            #print("\n\n--------\--------\--------\--------\--------\n\n")
+            VEHICLE_LIST.extend(Matched_Vehicles)
+    
+    # Sending email
+    SendEmail(VEHICLE_LIST)
 
 if __name__ == "__main__":
     main()

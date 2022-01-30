@@ -2,14 +2,14 @@
     {
         "Model": "Sequoia",
         "Year": "2000 - 2020",
-        "Mileage": 160000,
+        "Mileage": 180000,
         "Price": 12000
     },
 
     {
         "Model": "Land Cruiser",
         "Year": "2000 - 2007",
-        "Mileage": 160000,
+        "Mileage": 180000,
         "Price": 12000
     }
 ]
